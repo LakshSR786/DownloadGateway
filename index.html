@@ -1,667 +1,1096 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AnimLoop – Free Animation Gateway</title>
+<title>Motion Studio — Seamless Loop Animations</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet"/>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-  :root {
-    --lime: #C8F135;
-    --purple: #6B2FFA;
-    --coral: #FF4D6D;
-    --dark: #0E0E12;
-    --darker: #08080B;
-    --card: #18181F;
-    --border: rgba(255,255,255,0.1);
-    --text: #F0F0F5;
-    --muted: rgba(240,240,245,0.5);
-    --font: 'Space Grotesk', sans-serif;
-    --mono: 'Space Mono', monospace;
-    --radius: 14px;
-  }
+:root{
+  --lime:#C8F135;
+  --purple:#6B2FFA;
+  --coral:#FF4D6D;
+  --cyan:#00D4FF;
+  --dark:#0E0E12;
+  --darker:#08080B;
+  --card:#18181F;
+  --card2:#1E1E27;
+  --border:rgba(255,255,255,0.09);
+  --border2:rgba(255,255,255,0.15);
+  --text:#F0F0F5;
+  --muted:rgba(240,240,245,0.5);
+  --faint:rgba(240,240,245,0.25);
+  --font:'Space Grotesk',sans-serif;
+  --mono:'Space Mono',monospace;
+}
 
-  body {
-    font-family: var(--font);
-    background: var(--darker);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--darker);color:var(--text);overflow-x:hidden;line-height:1.6}
 
-  /* NAV */
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.1rem 2rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--darker);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo {
-    font-weight: 700;
-    font-size: 1.2rem;
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--lime); }
-  .nav-links { display: flex; gap: 1.5rem; }
-  .nav-links a {
-    text-decoration: none;
-    color: var(--muted);
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--text); }
-  .nav-cta {
-    background: var(--lime);
-    color: var(--dark);
-    padding: 0.45rem 1.1rem;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: opacity 0.2s;
-  }
-  .nav-cta:hover { opacity: 0.85; }
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.5rem;height:64px;
+  background:rgba(8,8,11,0.85);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.logo{font-weight:700;font-size:1.15rem;letter-spacing:-0.5px;text-decoration:none;color:var(--text)}
+.logo em{font-style:normal;color:var(--lime)}
+.nav-menu{display:flex;gap:2rem;list-style:none}
+.nav-menu a{text-decoration:none;color:var(--muted);font-size:0.88rem;font-weight:500;transition:color .2s}
+.nav-menu a:hover{color:var(--text)}
+.nav-cta{
+  background:var(--lime);color:var(--dark);
+  padding:.45rem 1.2rem;border-radius:8px;
+  font-weight:700;font-size:.85rem;text-decoration:none;
+  transition:opacity .2s,transform .15s;white-space:nowrap
+}
+.nav-cta:hover{opacity:.88;transform:translateY(-1px)}
+.nav-mobile-btn{display:none;background:none;border:none;color:var(--text);font-size:1.4rem;cursor:pointer;padding:.25rem}
 
-  /* HERO */
-  .hero {
-    text-align: center;
-    padding: 4rem 2rem 2.5rem;
-    position: relative;
-  }
-  .hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(107,47,250,0.18);
-    border: 1px solid rgba(107,47,250,0.4);
-    color: #A97FFF;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    padding: 0.3rem 0.9rem;
-    border-radius: 999px;
-    margin-bottom: 1.3rem;
-    text-transform: uppercase;
-  }
-  .hero-badge::before { content: '✦'; font-size: 0.65rem; }
-  .hero h1 {
-    font-size: clamp(2.2rem, 5vw, 3.5rem);
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -1.5px;
-    margin-bottom: 1rem;
-    max-width: 680px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .hero h1 em {
-    font-style: normal;
-    color: var(--lime);
-  }
-  .hero p {
-    color: var(--muted);
-    font-size: 1.05rem;
-    max-width: 480px;
-    margin: 0 auto 2rem;
-    line-height: 1.6;
-  }
-  .platforms {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 3rem;
-  }
-  .platform-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.35rem 0.9rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--muted);
-  }
-  .platform-pill .dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--lime);
-  }
+/* ── HERO ── */
+#home{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:8rem 2rem 5rem;
+  position:relative;overflow:hidden
+}
+.hero-grid-bg{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(107,47,250,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107,47,250,.07) 1px, transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 50%, black 40%, transparent 100%);
+}
+.hero-orb{
+  position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle, rgba(107,47,250,.18) 0%, transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-55%);pointer-events:none
+}
+.hero-content{position:relative;z-index:1;max-width:780px}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(107,47,250,.15);border:1px solid rgba(107,47,250,.35);
+  color:#A97FFF;font-size:.72rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:.3rem 1rem;border-radius:999px;margin-bottom:1.8rem
+}
+.hero-eyebrow::before{content:'▶';font-size:.6rem}
+h1.hero-title{
+  font-size:clamp(2.8rem,7vw,5.5rem);font-weight:700;
+  line-height:1.0;letter-spacing:-2.5px;margin-bottom:1.5rem
+}
+h1.hero-title .accent{color:var(--lime)}
+h1.hero-title .stroke{
+  -webkit-text-stroke:2px var(--text);color:transparent
+}
+.hero-sub{
+  font-size:1.1rem;color:var(--muted);max-width:520px;
+  margin:0 auto 2.5rem;line-height:1.7
+}
+.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:3.5rem}
+.btn-primary{
+  background:var(--lime);color:var(--dark);
+  padding:.75rem 1.8rem;border-radius:10px;
+  font-weight:700;font-size:.95rem;text-decoration:none;
+  transition:opacity .2s,transform .15s;display:inline-flex;align-items:center;gap:8px
+}
+.btn-primary:hover{opacity:.88;transform:translateY(-2px)}
+.btn-ghost{
+  background:transparent;color:var(--text);
+  border:1px solid var(--border2);
+  padding:.75rem 1.8rem;border-radius:10px;
+  font-weight:600;font-size:.95rem;text-decoration:none;
+  transition:border-color .2s,background .2s,transform .15s;
+  display:inline-flex;align-items:center;gap:8px
+}
+.btn-ghost:hover{border-color:var(--purple);background:rgba(107,47,250,.1);transform:translateY(-2px)}
+.hero-stats{
+  display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;
+  padding-top:2.5rem;border-top:1px solid var(--border)
+}
+.stat-item{text-align:center}
+.stat-num{font-family:var(--mono);font-size:1.8rem;font-weight:700;color:var(--lime);line-height:1;display:block}
+.stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
 
-  /* MAIN GATEWAY CARD */
-  .gateway-wrap {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 1.5rem 5rem;
-  }
-  .gateway-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 22px;
-    overflow: hidden;
-  }
-  .card-accent-bar {
-    height: 4px;
-    background: linear-gradient(90deg, var(--purple), var(--coral), var(--lime));
-  }
-  .card-inner { padding: 2rem 2.2rem; }
+/* ── SECTION WRAPPER ── */
+section{padding:6rem 2rem}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-header{margin-bottom:3rem}
+.section-eyebrow{
+  font-size:.7rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--purple);margin-bottom:.75rem
+}
+.section-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;letter-spacing:-1px;line-height:1.15}
+.section-title .hl{color:var(--lime)}
+.section-sub{color:var(--muted);font-size:1rem;margin-top:.75rem;max-width:520px;line-height:1.65}
 
-  /* ASSET PREVIEW */
-  .asset-preview {
-    display: flex;
-    gap: 1.2rem;
-    align-items: center;
-    padding: 1.2rem 1.4rem;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    margin-bottom: 2rem;
-  }
-  .asset-thumb {
-    width: 64px; height: 64px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--purple), var(--coral));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    flex-shrink: 0;
-  }
-  .asset-info h3 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
-  .asset-info p { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
-  .asset-meta {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 8px;
-    flex-wrap: wrap;
-  }
-  .meta-tag {
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 6px;
-  }
-  .tag-loop { background: rgba(200,241,53,0.12); color: var(--lime); }
-  .tag-4k { background: rgba(107,47,250,0.15); color: #A97FFF; }
-  .tag-ae { background: rgba(255,77,109,0.12); color: #FF7D96; }
+/* ── PORTFOLIO ── */
+#portfolio{background:var(--dark)}
+.filter-bar{
+  display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:2.5rem
+}
+.filter-btn{
+  background:transparent;border:1px solid var(--border);
+  color:var(--muted);padding:.4rem 1rem;border-radius:999px;
+  font-family:var(--font);font-size:.8rem;font-weight:600;cursor:pointer;
+  transition:all .2s
+}
+.filter-btn:hover{border-color:var(--purple);color:#A97FFF}
+.filter-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
 
-  /* STEPS */
-  .steps-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 1.1rem;
-  }
-  .steps {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    margin-bottom: 1.6rem;
-    position: relative;
-  }
-  .step {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-    padding-bottom: 1.4rem;
-    position: relative;
-  }
-  .step:last-child { padding-bottom: 0; }
-  .step-line {
-    position: absolute;
-    left: 15px;
-    top: 34px;
-    bottom: 0;
-    width: 2px;
-    background: var(--border);
-  }
-  .step:last-child .step-line { display: none; }
-  .step-num {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.78rem;
-    font-weight: 700;
-    font-family: var(--mono);
-    flex-shrink: 0;
-    z-index: 1;
-    background: var(--card);
-    transition: border-color 0.3s, background 0.3s, color 0.3s;
-  }
-  .step.done .step-num {
-    background: var(--lime);
-    border-color: var(--lime);
-    color: var(--dark);
-  }
-  .step.active .step-num {
-    border-color: var(--purple);
-    color: #A97FFF;
-  }
-  .step-body { flex: 1; padding-top: 4px; }
-  .step-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 4px; }
-  .step-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
-  .step-desc a {
-    color: var(--lime);
-    text-decoration: none;
-    font-weight: 600;
-  }
-  .step-desc a:hover { text-decoration: underline; }
+.portfolio-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:1.25rem
+}
 
-  /* STOCK LINKS */
-  .stock-links {
-    display: flex;
-    gap: 0.6rem;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-  .stock-link {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 0.35rem 0.85rem;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: opacity 0.2s, transform 0.15s;
-    cursor: pointer;
-    border: none;
-  }
-  .stock-link:hover { opacity: 0.85; transform: translateY(-1px); }
-  .link-envato { background: #81B441; color: #fff; }
-  .link-shutterstock { background: #EE2B24; color: #fff; }
-  .link-adobe { background: #DA0F17; color: #fff; }
-  .link-vecteezy { background: #1CA6DC; color: #fff; }
+/* The animated border trick — our signature element */
+.port-card{
+  border-radius:16px;overflow:hidden;
+  background:var(--card);
+  border:1px solid var(--border);
+  cursor:pointer;position:relative;
+  transition:transform .25s,box-shadow .25s
+}
+.port-card::before{
+  content:'';position:absolute;inset:-1px;border-radius:17px;z-index:0;
+  background:conic-gradient(from var(--angle,0deg), var(--purple), var(--coral), var(--lime), var(--cyan), var(--purple));
+  opacity:0;transition:opacity .3s
+}
+.port-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.port-card:hover::before{opacity:1;animation:spin 2.5s linear infinite}
+@keyframes spin{to{--angle:360deg}}
+@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false}
 
-  /* CODE INPUT */
-  .code-input-wrap { margin-top: 1.6rem; }
-  .code-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 8px;
-    display: block;
-  }
-  .code-row {
-    display: flex;
-    gap: 0.6rem;
-  }
-  .code-input {
-    flex: 1;
-    background: rgba(255,255,255,0.06);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    padding: 0.75rem 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-    text-transform: uppercase;
-  }
-  .code-input::placeholder { color: rgba(240,240,245,0.2); letter-spacing: 0.05em; font-weight: 400; }
-  .code-input:focus { border-color: var(--purple); }
-  .code-input.error { border-color: var(--coral); }
-  .code-input.success-input { border-color: var(--lime); }
-  .btn-generate {
-    background: var(--purple);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    font-family: var(--font);
-    font-size: 0.9rem;
-    font-weight: 700;
-    padding: 0.75rem 1.4rem;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: opacity 0.2s, transform 0.15s;
-  }
-  .btn-generate:hover { opacity: 0.88; transform: translateY(-1px); }
-  .btn-generate:active { transform: scale(0.97); }
-  .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.port-card-inner{
+  position:relative;z-index:1;
+  background:var(--card);border-radius:15px;overflow:hidden
+}
+.port-thumb{
+  width:100%;aspect-ratio:16/9;
+  position:relative;overflow:hidden;background:var(--card2)
+}
+.port-thumb-visual{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;
+  transition:transform .3s
+}
+.port-card:hover .port-thumb-visual{transform:scale(1.04)}
+.port-play-overlay{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.4);opacity:0;transition:opacity .25s
+}
+.port-card:hover .port-play-overlay{opacity:1}
+.play-btn{
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(255,255,255,.15);
+  backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;color:#fff
+}
+.port-tags{
+  position:absolute;top:10px;left:10px;
+  display:flex;gap:5px;flex-wrap:wrap
+}
+.port-tag{
+  font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:6px;
+  backdrop-filter:blur(8px)
+}
+.tag-loop{background:rgba(200,241,53,.15);color:var(--lime);border:1px solid rgba(200,241,53,.25)}
+.tag-4k{background:rgba(107,47,250,.2);color:#A97FFF;border:1px solid rgba(107,47,250,.3)}
+.tag-new{background:rgba(255,77,109,.15);color:#FF7D96;border:1px solid rgba(255,77,109,.25)}
+.tag-bg{background:rgba(0,212,255,.12);color:#5DE0F5;border:1px solid rgba(0,212,255,.2)}
+.tag-trans{background:rgba(255,165,0,.12);color:#FFA940;border:1px solid rgba(255,165,0,.2)}
 
-  .error-msg {
-    color: #FF7D96;
-    font-size: 0.78rem;
-    margin-top: 6px;
-    display: none;
-  }
+.port-info{padding:1rem 1.1rem 1.1rem}
+.port-info h4{font-size:.92rem;font-weight:700;margin-bottom:.25rem;line-height:1.3}
+.port-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:.6rem
+}
+.port-platform{font-size:.72rem;color:var(--faint);font-weight:500}
+.port-links{display:flex;gap:.4rem}
+.port-link{
+  font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:6px;
+  text-decoration:none;transition:opacity .2s
+}
+.port-link:hover{opacity:.8}
+.pl-envato{background:#81B441;color:#fff}
+.pl-ss{background:#EE2B24;color:#fff}
+.pl-adobe{background:#DA0F17;color:#fff}
+.pl-vec{background:#1CA6DC;color:#fff}
+.port-desc{font-size:.78rem;color:var(--muted);line-height:1.5;margin-top:.5rem}
 
-  /* SUCCESS STATE */
-  .success-panel {
-    display: none;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1.5rem;
-    padding: 1.4rem;
-    background: rgba(200,241,53,0.05);
-    border: 1px solid rgba(200,241,53,0.25);
-    border-radius: 14px;
-  }
-  .success-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .success-icon {
-    width: 36px; height: 36px;
-    background: var(--lime);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    color: var(--dark);
-    flex-shrink: 0;
-  }
-  .success-header h4 { font-size: 0.95rem; font-weight: 700; }
-  .success-header p { font-size: 0.8rem; color: var(--muted); }
-  .btn-download {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: var(--lime);
-    color: var(--dark);
-    border: none;
-    border-radius: 10px;
-    font-family: var(--font);
-    font-size: 0.95rem;
-    font-weight: 700;
-    padding: 0.85rem 1.5rem;
-    cursor: pointer;
-    width: 100%;
-    transition: opacity 0.2s, transform 0.15s;
-  }
-  .btn-download:hover { opacity: 0.88; transform: translateY(-1px); }
-  .btn-download svg { width: 18px; height: 18px; }
+/* ── ABOUT ── */
+#about{background:var(--darker)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.about-visual{
+  aspect-ratio:1;border-radius:24px;overflow:hidden;
+  background:var(--card);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  position:relative
+}
+.about-avatar{font-size:5rem;z-index:1;position:relative}
+.about-rings{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;pointer-events:none
+}
+.ring{
+  position:absolute;border-radius:50%;border:1px solid;
+  animation:pulse 3s ease-in-out infinite
+}
+.ring1{width:120px;height:120px;border-color:rgba(107,47,250,.4);animation-delay:0s}
+.ring2{width:200px;height:200px;border-color:rgba(200,241,53,.2);animation-delay:.6s}
+.ring3{width:290px;height:290px;border-color:rgba(255,77,109,.15);animation-delay:1.2s}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+.about-badge{
+  position:absolute;bottom:1.5rem;right:1.5rem;
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:12px;padding:.7rem 1rem;
+  font-size:.78rem;font-weight:600
+}
+.about-badge strong{color:var(--lime);font-size:1.3rem;font-family:var(--mono);display:block;line-height:1}
+.about-text{}
+.about-text h2{font-size:clamp(1.6rem,3.5vw,2.4rem);font-weight:700;letter-spacing:-1px;margin-bottom:1.2rem;line-height:1.15}
+.about-text h2 span{color:var(--lime)}
+.about-text p{color:var(--muted);font-size:.95rem;line-height:1.75;margin-bottom:1rem}
+.about-skills{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1.5rem}
+.skill-pill{
+  font-size:.75rem;font-weight:600;padding:.3rem .85rem;border-radius:999px;
+  border:1px solid var(--border2);color:var(--muted);background:var(--card)
+}
 
-  .upsell-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.75rem 1rem;
-    background: rgba(107,47,250,0.1);
-    border: 1px solid rgba(107,47,250,0.25);
-    border-radius: 10px;
-  }
-  .upsell-row p {
-    font-size: 0.8rem;
-    color: var(--muted);
-    line-height: 1.4;
-  }
-  .upsell-row p strong { color: var(--text); }
-  .upsell-row a {
-    text-decoration: none;
-    color: #A97FFF;
-    font-weight: 700;
-    white-space: nowrap;
-    font-size: 0.8rem;
-    margin-left: auto;
-    flex-shrink: 0;
-  }
+/* ── SERVICES ── */
+#services{background:var(--dark)}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem}
+.service-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:18px;padding:1.8rem 1.6rem;
+  transition:border-color .25s,transform .25s
+}
+.service-card:hover{border-color:rgba(107,47,250,.45);transform:translateY(-3px)}
+.service-icon{
+  width:48px;height:48px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin-bottom:1.2rem
+}
+.si-purple{background:rgba(107,47,250,.15)}
+.si-lime{background:rgba(200,241,53,.12)}
+.si-coral{background:rgba(255,77,109,.12)}
+.si-cyan{background:rgba(0,212,255,.1)}
+.service-card h3{font-size:1rem;font-weight:700;margin-bottom:.5rem}
+.service-card p{font-size:.82rem;color:var(--muted);line-height:1.65;margin-bottom:1.2rem}
+.service-price{
+  font-family:var(--mono);font-size:1.3rem;font-weight:700;color:var(--lime)
+}
+.service-price span{font-size:.75rem;color:var(--muted);font-family:var(--font);font-weight:400}
+.service-features{margin-top:1rem;list-style:none}
+.service-features li{
+  font-size:.78rem;color:var(--muted);padding:.3rem 0;
+  border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px
+}
+.service-features li:last-child{border-bottom:none}
+.service-features li::before{content:'✓';color:var(--lime);font-weight:700;font-size:.7rem}
 
-  /* HOW TO GET CODE */
-  .code-hint {
-    margin-top: 0.75rem;
-    font-size: 0.78rem;
-    color: var(--muted);
-    text-align: center;
-  }
-  .code-hint button {
-    background: none;
-    border: none;
-    color: #A97FFF;
-    font-family: var(--font);
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 0;
-  }
+/* ── GATEWAY ── */
+#downloads{background:var(--darker)}
+.gateway-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:22px;overflow:hidden;max-width:680px;margin:0 auto
+}
+.gw-accent{height:4px;background:linear-gradient(90deg,var(--purple),var(--coral),var(--lime))}
+.gw-inner{padding:2rem 2.2rem}
+.gw-asset{
+  display:flex;gap:1.2rem;align-items:center;
+  padding:1.2rem 1.4rem;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:14px;margin-bottom:2rem
+}
+.gw-thumb{
+  width:60px;height:60px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--purple),var(--coral));
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem
+}
+.gw-asset h3{font-size:.95rem;font-weight:700;margin-bottom:3px}
+.gw-asset p{font-size:.78rem;color:var(--muted)}
+.gw-meta{display:flex;gap:.5rem;margin-top:6px;flex-wrap:wrap}
+.gw-tag{font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:6px}
+.steps-lbl{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem}
+.gw-steps{display:flex;flex-direction:column;margin-bottom:1.5rem}
+.gw-step{display:flex;gap:1rem;align-items:flex-start;padding-bottom:1.3rem;position:relative}
+.gw-step:last-child{padding-bottom:0}
+.gw-step-line{position:absolute;left:15px;top:34px;bottom:0;width:2px;background:var(--border)}
+.gw-step:last-child .gw-step-line{display:none}
+.gw-num{
+  width:32px;height:32px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:700;font-family:var(--mono);
+  flex-shrink:0;z-index:1;background:var(--card);
+  transition:all .3s
+}
+.gw-step.done .gw-num{background:var(--lime);border-color:var(--lime);color:var(--dark)}
+.gw-step.active .gw-num{border-color:var(--purple);color:#A97FFF}
+.gw-step-body{flex:1;padding-top:4px}
+.gw-step-title{font-size:.88rem;font-weight:600;margin-bottom:3px}
+.gw-step-desc{font-size:.77rem;color:var(--muted);line-height:1.5}
+.gw-stock-links{display:flex;gap:.5rem;margin-top:8px;flex-wrap:wrap}
+.gw-slink{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:.3rem .8rem;border-radius:7px;font-size:.73rem;font-weight:700;
+  text-decoration:none;transition:opacity .2s,transform .15s
+}
+.gw-slink:hover{opacity:.85;transform:translateY(-1px)}
+.gsl-env{background:#81B441;color:#fff}
+.gsl-ss{background:#EE2B24;color:#fff}
+.gsl-adobe{background:#DA0F17;color:#fff}
+.gsl-vec{background:#1CA6DC;color:#fff}
+.code-lbl{font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:7px;display:block}
+.code-row{display:flex;gap:.6rem}
+.code-input{
+  flex:1;background:rgba(255,255,255,.06);
+  border:1.5px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:var(--mono);font-size:.95rem;font-weight:700;
+  letter-spacing:.12em;padding:.7rem 1rem;outline:none;
+  transition:border-color .2s;text-transform:uppercase
+}
+.code-input::placeholder{color:rgba(240,240,245,.2);letter-spacing:.05em;font-weight:400}
+.code-input:focus{border-color:var(--purple)}
+.code-input.err{border-color:var(--coral)}
+.code-input.ok{border-color:var(--lime)}
+.btn-gen{
+  background:var(--purple);color:#fff;border:none;border-radius:10px;
+  font-family:var(--font);font-size:.88rem;font-weight:700;
+  padding:.7rem 1.3rem;cursor:pointer;white-space:nowrap;
+  transition:opacity .2s,transform .15s
+}
+.btn-gen:hover{opacity:.88;transform:translateY(-1px)}
+.btn-gen:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.err-msg{color:#FF7D96;font-size:.75rem;margin-top:5px;display:none}
+.success-box{
+  display:none;flex-direction:column;gap:.9rem;
+  margin-top:1.4rem;padding:1.3rem;
+  background:rgba(200,241,53,.04);border:1px solid rgba(200,241,53,.2);
+  border-radius:14px
+}
+.success-hd{display:flex;align-items:center;gap:10px}
+.success-ico{
+  width:34px;height:34px;background:var(--lime);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:var(--dark);font-size:.95rem;flex-shrink:0
+}
+.success-hd h4{font-size:.9rem;font-weight:700}
+.success-hd p{font-size:.75rem;color:var(--muted)}
+.btn-dl{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  background:var(--lime);color:var(--dark);border:none;border-radius:10px;
+  font-family:var(--font);font-size:.9rem;font-weight:700;
+  padding:.8rem 1.4rem;cursor:pointer;width:100%;
+  transition:opacity .2s,transform .15s
+}
+.btn-dl:hover{opacity:.88;transform:translateY(-1px)}
+.upsell{
+  display:flex;align-items:center;gap:8px;padding:.7rem 1rem;
+  background:rgba(107,47,250,.08);border:1px solid rgba(107,47,250,.22);border-radius:10px
+}
+.upsell p{font-size:.76rem;color:var(--muted);line-height:1.4;flex:1}
+.upsell p strong{color:var(--text)}
+.upsell a{color:#A97FFF;font-weight:700;font-size:.76rem;text-decoration:none;white-space:nowrap;flex-shrink:0}
+.code-hint{margin-top:.7rem;font-size:.75rem;color:var(--muted);text-align:center}
+.code-hint button{background:none;border:none;color:#A97FFF;font-family:var(--font);font-size:.75rem;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+.hint-box{
+  display:none;margin-top:.7rem;padding:.9rem 1.1rem;
+  background:rgba(107,47,250,.07);border:1px solid rgba(107,47,250,.18);
+  border-radius:11px;font-size:.78rem;color:var(--muted);line-height:1.6
+}
+.hint-box ol{padding-left:1.2rem}
+.hint-box li{margin-bottom:3px}
+.hint-box strong{color:var(--text)}
 
-  /* WHERE TO GET CODE MODAL INLINE */
-  .hint-panel {
-    display: none;
-    margin-top: 0.75rem;
-    padding: 1rem 1.2rem;
-    background: rgba(107,47,250,0.08);
-    border: 1px solid rgba(107,47,250,0.2);
-    border-radius: 12px;
-    font-size: 0.82rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-  .hint-panel ol { padding-left: 1.2rem; }
-  .hint-panel li { margin-bottom: 4px; }
-  .hint-panel strong { color: var(--text); }
+/* ── CONTACT ── */
+#contact{background:var(--dark)}
+.contact-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:4rem;align-items:start}
+.contact-info h3{font-size:1.1rem;font-weight:700;margin-bottom:.75rem}
+.contact-info p{font-size:.88rem;color:var(--muted);line-height:1.7;margin-bottom:1.5rem}
+.contact-methods{display:flex;flex-direction:column;gap:.75rem}
+.c-method{
+  display:flex;align-items:center;gap:12px;padding:1rem 1.2rem;
+  background:var(--card);border:1px solid var(--border);border-radius:12px
+}
+.c-method-icon{font-size:1.2rem;width:36px;text-align:center;flex-shrink:0}
+.c-method-label{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.c-method-val{font-size:.85rem;font-weight:600;color:var(--text)}
+.contact-form{display:flex;flex-direction:column;gap:1rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.form-group input,.form-group select,.form-group textarea{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:10px;color:var(--text);font-family:var(--font);
+  font-size:.88rem;padding:.7rem 1rem;outline:none;
+  transition:border-color .2s;resize:none
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--purple)}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--faint)}
+.form-group select option{background:var(--card);color:var(--text)}
+.btn-send{
+  background:var(--purple);color:#fff;border:none;
+  border-radius:10px;font-family:var(--font);font-size:.95rem;
+  font-weight:700;padding:.85rem 2rem;cursor:pointer;
+  transition:opacity .2s,transform .15s;align-self:flex-start;
+  display:flex;align-items:center;gap:8px
+}
+.btn-send:hover{opacity:.88;transform:translateY(-2px)}
+.form-success{
+  display:none;padding:1.2rem 1.4rem;
+  background:rgba(200,241,53,.06);border:1px solid rgba(200,241,53,.2);
+  border-radius:12px;font-size:.88rem;color:var(--lime);font-weight:600
+}
 
-  /* FOOTER */
-  footer {
-    text-align: center;
-    padding: 2rem;
-    font-size: 0.78rem;
-    color: var(--muted);
-    border-top: 1px solid var(--border);
-    line-height: 1.8;
+/* ── FOOTER ── */
+footer{
+  background:var(--darker);border-top:1px solid var(--border);
+  padding:3rem 2rem 2rem
+}
+.footer-inner{max-width:1200px;margin:0 auto}
+.footer-top{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  gap:2rem;flex-wrap:wrap;margin-bottom:2.5rem
+}
+.footer-brand .logo{font-size:1.1rem;display:block;margin-bottom:.6rem}
+.footer-brand p{font-size:.8rem;color:var(--muted);max-width:240px;line-height:1.6}
+.footer-links h4{font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem}
+.footer-links ul{list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.footer-links a{text-decoration:none;color:var(--muted);font-size:.83rem;transition:color .2s}
+.footer-links a:hover{color:var(--lime)}
+.footer-bottom{
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid var(--border);padding-top:1.5rem;flex-wrap:wrap;gap:.75rem
+}
+.footer-bottom p{font-size:.75rem;color:var(--faint)}
+.footer-bottom a{color:var(--muted);text-decoration:none}
+.footer-bottom a:hover{color:var(--lime)}
+.footer-platforms{display:flex;gap:.5rem;flex-wrap:wrap}
+.fp-btn{
+  padding:.3rem .8rem;border-radius:6px;font-size:.72rem;font-weight:700;
+  text-decoration:none;transition:opacity .2s
+}
+.fp-btn:hover{opacity:.82}
+.fp-env{background:#81B441;color:#fff}
+.fp-ss{background:#EE2B24;color:#fff}
+.fp-adobe{background:#DA0F17;color:#fff}
+.fp-vec{background:#1CA6DC;color:#fff}
+
+/* ── SCROLL REVEAL ── */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .about-grid,.contact-grid{grid-template-columns:1fr}
+  .about-visual{max-width:300px}
+  .form-row{grid-template-columns:1fr}
+  .footer-top{flex-direction:column}
+}
+@media(max-width:680px){
+  nav{padding:0 1.1rem}
+  .nav-menu{display:none}
+  .nav-mobile-btn{display:block}
+  .nav-menu.open{
+    display:flex;flex-direction:column;gap:0;
+    position:fixed;top:64px;left:0;right:0;bottom:0;
+    background:var(--darker);padding:2rem;z-index:199
   }
-  footer a { color: #A97FFF; text-decoration: none; }
+  .nav-menu.open a{font-size:1.1rem;padding:.75rem 0;border-bottom:1px solid var(--border)}
+  section{padding:4rem 1.2rem}
+  .gw-inner{padding:1.4rem 1.1rem}
+  .hero-stats{gap:1.5rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <div class="logo">Anim<span>Loop</span></div>
-  <div class="nav-links">
-    <a href="#">Free assets</a>
-    <a href="#">Portfolio</a>
-    <a href="#">Blog</a>
-  </div>
-  <a href="#" class="nav-cta">Get premium ↗</a>
+  <a class="logo" href="#home">Motion<em>Studio</em></a>
+  <ul class="nav-menu" id="navMenu">
+    <li><a href="#portfolio">Work</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#downloads">Free downloads</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a class="nav-cta" href="#downloads">Get free sample ↗</a>
+  <button class="nav-mobile-btn" id="mobileBtn" aria-label="Toggle menu">☰</button>
 </nav>
 
-<div class="hero">
-  <div class="hero-badge">Free download</div>
-  <h1>Premium seamless loops,<br/><em>yours for free</em></h1>
-  <p>Sample my best animations before buying on stock platforms. Enter the code from any listing to unlock your download.</p>
-  <div class="platforms">
-    <div class="platform-pill"><span class="dot"></span>Envato Elements</div>
-    <div class="platform-pill"><span class="dot"></span>Shutterstock</div>
-    <div class="platform-pill"><span class="dot"></span>Adobe Stock</div>
-    <div class="platform-pill"><span class="dot"></span>Vecteezy</div>
+<!-- HERO -->
+<section id="home">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-orb"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Seamless loop specialist</div>
+    <h1 class="hero-title">
+      Motion that <span class="accent">never</span><br/>
+      <span class="stroke">stops</span> moving
+    </h1>
+    <p class="hero-sub">4K seamless loop animations for Envato, Shutterstock, Adobe Stock, and Vecteezy. Built for designers, editors, and creative teams worldwide.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#portfolio">Browse animations ↓</a>
+      <a class="btn-ghost" href="#downloads">Free sample download</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <span class="stat-num">340+</span>
+        <span class="stat-label">Animations published</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">4</span>
+        <span class="stat-label">Stock platforms</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">12K+</span>
+        <span class="stat-label">Downloads</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">8yr</span>
+        <span class="stat-label">Creating motion</span>
+      </div>
+    </div>
   </div>
-</div>
+</section>
 
-<div class="gateway-wrap">
-  <div class="gateway-card">
-    <div class="card-accent-bar"></div>
-    <div class="card-inner">
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Portfolio</div>
+      <h2 class="section-title">Animations built to <span class="hl">loop forever</span></h2>
+      <p class="section-sub">Every file is frame-perfect, 4K ready, and available on major stock platforms.</p>
+    </div>
 
-      <!-- Asset preview -->
-      <div class="asset-preview">
-        <div class="asset-thumb">🎬</div>
-        <div class="asset-info">
-          <h3>Geometric Wave Loop – Vol. 3</h3>
-          <p>4K seamless loop · 30 sec · Alpha channel included · After Effects source</p>
-          <div class="asset-meta">
-            <span class="meta-tag tag-loop">Seamless loop</span>
-            <span class="meta-tag tag-4k">4K UHD</span>
-            <span class="meta-tag tag-ae">AE source</span>
-          </div>
+    <div class="filter-bar reveal">
+      <button class="filter-btn active" onclick="filterCards(this,'all')">All</button>
+      <button class="filter-btn" onclick="filterCards(this,'loop')">Seamless loops</button>
+      <button class="filter-btn" onclick="filterCards(this,'bg')">Backgrounds</button>
+      <button class="filter-btn" onclick="filterCards(this,'trans')">Transitions</button>
+      <button class="filter-btn" onclick="filterCards(this,'particles')">Particles</button>
+      <button class="filter-btn" onclick="filterCards(this,'geo')">Geometric</button>
+    </div>
+
+    <div class="portfolio-grid" id="portfolioGrid">
+      <!-- Cards generated by JS below -->
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-visual reveal">
+        <div class="about-rings">
+          <div class="ring ring1"></div>
+          <div class="ring ring2"></div>
+          <div class="ring ring3"></div>
+        </div>
+        <div class="about-avatar">🎬</div>
+        <div class="about-badge">
+          <strong>340+</strong>
+          animations live
         </div>
       </div>
+      <div class="about-text reveal">
+        <div class="section-eyebrow">About</div>
+        <h2>Motion designer obsessed with the <span>perfect loop</span></h2>
+        <p>I'm a stock animation contributor with 8 years of experience crafting seamless loop animations that work for broadcast, social media, presentations, and digital signage.</p>
+        <p>Every animation I publish is color-graded, frame-tested, and exported with alpha channel support. My goal: give editors an asset they can drop straight into the timeline without touching it.</p>
+        <p>Currently contributing to Envato Elements, Shutterstock, Adobe Stock, and Vecteezy — with new packs dropping every month.</p>
+        <div class="about-skills">
+          <span class="skill-pill">After Effects</span>
+          <span class="skill-pill">Cinema 4D</span>
+          <span class="skill-pill">DaVinci Resolve</span>
+          <span class="skill-pill">Seamless loops</span>
+          <span class="skill-pill">Motion graphics</span>
+          <span class="skill-pill">Alpha channel</span>
+          <span class="skill-pill">4K / 8K export</span>
+          <span class="skill-pill">Color grading</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-      <!-- Steps -->
-      <div class="steps-label">How to download</div>
-      <div class="steps">
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Services &amp; pricing</div>
+      <h2 class="section-title">Need something <span class="hl">custom?</span></h2>
+      <p class="section-sub">Beyond stock platforms, I take on custom commissions for brands, agencies, and production studios.</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-icon si-lime">🔁</div>
+        <h3>Custom loop pack</h3>
+        <p>Branded seamless loop animations tailored to your visual identity. Delivered in 4K with source files.</p>
+        <div class="service-price">$299 <span>/ pack of 5</span></div>
+        <ul class="service-features">
+          <li>5 unique seamless loops</li>
+          <li>4K UHD delivery</li>
+          <li>Alpha channel included</li>
+          <li>After Effects source</li>
+          <li>2 rounds of revisions</li>
+        </ul>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon si-purple">✨</div>
+        <h3>Background collection</h3>
+        <p>A full set of animated background loops matching your brand palette, ready for Premiere or FCPX.</p>
+        <div class="service-price">$199 <span>/ pack of 10</span></div>
+        <ul class="service-features">
+          <li>10 background animations</li>
+          <li>Brand color matching</li>
+          <li>MP4 + ProRes delivery</li>
+          <li>Social media sizes</li>
+          <li>1 round of revisions</li>
+        </ul>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon si-coral">⚡</div>
+        <h3>Transition pack</h3>
+        <p>Smooth, frame-accurate transitions between scenes. Works across any NLE with alpha channel support.</p>
+        <div class="service-price">$149 <span>/ pack of 8</span></div>
+        <ul class="service-features">
+          <li>8 custom transitions</li>
+          <li>Alpha channel</li>
+          <li>NLE-ready files</li>
+          <li>30fps + 60fps exports</li>
+          <li>1 round of revisions</li>
+        </ul>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-icon si-cyan">🚀</div>
+        <h3>Full motion package</h3>
+        <p>Everything you need for a full motion identity: loops, transitions, backgrounds, and lower thirds.</p>
+        <div class="service-price">$699 <span>/ full package</span></div>
+        <ul class="service-features">
+          <li>20+ animations total</li>
+          <li>Full brand alignment</li>
+          <li>All formats included</li>
+          <li>Priority turnaround</li>
+          <li>Unlimited revisions</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <div class="step done" id="step1">
-          <div class="step-num">✓</div>
-          <div class="step-line"></div>
-          <div class="step-body">
-            <div class="step-title">Find the asset on a stock platform</div>
-            <div class="step-desc">Browse my full portfolio and copy the asset code from the listing description.</div>
-            <div class="stock-links">
-              <a class="stock-link link-envato" href="#">Envato</a>
-              <a class="stock-link link-shutterstock" href="#">Shutterstock</a>
-              <a class="stock-link link-adobe" href="#">Adobe Stock</a>
-              <a class="stock-link link-vecteezy" href="#">Vecteezy</a>
+<!-- FREE DOWNLOADS GATEWAY -->
+<section id="downloads">
+  <div class="section-inner">
+    <div class="section-header reveal" style="text-align:center;max-width:560px;margin:0 auto 3rem">
+      <div class="section-eyebrow">Free downloads</div>
+      <h2 class="section-title">Try before you <span class="hl">buy</span></h2>
+      <p class="section-sub">Enter the code from any stock listing to download a free full-quality sample — no signup needed.</p>
+    </div>
+    <div class="gateway-card reveal">
+      <div class="gw-accent"></div>
+      <div class="gw-inner">
+        <div class="gw-asset">
+          <div class="gw-thumb">🎬</div>
+          <div>
+            <h3>Geometric Wave Loop – Vol. 3</h3>
+            <p>4K seamless loop · 30 sec · Alpha channel · After Effects source</p>
+            <div class="gw-meta">
+              <span class="gw-tag tag-loop">Seamless loop</span>
+              <span class="gw-tag tag-4k">4K UHD</span>
+              <span class="gw-tag tag-ae" style="background:rgba(255,77,109,.12);color:#FF7D96;border:1px solid rgba(255,77,109,.25)">AE source</span>
             </div>
           </div>
         </div>
 
-        <div class="step active" id="step2">
-          <div class="step-num">2</div>
-          <div class="step-line"></div>
-          <div class="step-body">
-            <div class="step-title">Enter the code below</div>
-            <div class="step-desc">Paste the unique code from the listing and generate your free download link.</div>
+        <div class="steps-lbl">How to download</div>
+        <div class="gw-steps">
+          <div class="gw-step done" id="gstep1">
+            <div class="gw-num">✓</div>
+            <div class="gw-step-line"></div>
+            <div class="gw-step-body">
+              <div class="gw-step-title">Find the asset on a stock platform</div>
+              <div class="gw-step-desc">Copy the free sample code from any listing description.
+                <div class="gw-stock-links">
+                  <a class="gw-slink gsl-env" href="https://elements.envato.com" target="_blank">Envato</a>
+                  <a class="gw-slink gsl-ss" href="https://www.shutterstock.com" target="_blank">Shutterstock</a>
+                  <a class="gw-slink gsl-adobe" href="https://stock.adobe.com" target="_blank">Adobe Stock</a>
+                  <a class="gw-slink gsl-vec" href="https://www.vecteezy.com" target="_blank">Vecteezy</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="gw-step active" id="gstep2">
+            <div class="gw-num">2</div>
+            <div class="gw-step-line"></div>
+            <div class="gw-step-body">
+              <div class="gw-step-title">Enter the code below</div>
+              <div class="gw-step-desc">Paste the unique code and generate your download link.</div>
+            </div>
+          </div>
+          <div class="gw-step" id="gstep3">
+            <div class="gw-num">3</div>
+            <div class="gw-step-line"></div>
+            <div class="gw-step-body">
+              <div class="gw-step-title">Download your free sample</div>
+              <div class="gw-step-desc">Get the full-quality file. Love it? Grab the full pack.</div>
+            </div>
           </div>
         </div>
 
-        <div class="step" id="step3">
-          <div class="step-num">3</div>
-          <div class="step-line"></div>
-          <div class="step-body">
-            <div class="step-title">Download your free sample</div>
-            <div class="step-desc">Get the full-quality preview file. Love it? Grab the full pack on the platform.</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Code input -->
-      <div class="code-input-wrap">
-        <label class="code-label" for="codeField">Asset code</label>
+        <label class="code-lbl" for="gwCode">Asset code</label>
         <div class="code-row">
-          <input class="code-input" id="codeField" type="text" maxlength="12" placeholder="e.g. AL-0042" autocomplete="off" spellcheck="false" />
-          <button class="btn-generate" id="btnGenerate" onclick="handleGenerate()">Generate link</button>
+          <input class="code-input" id="gwCode" type="text" maxlength="12" placeholder="e.g. AL-0042" autocomplete="off" spellcheck="false"/>
+          <button class="btn-gen" id="gwBtn" onclick="gwGenerate()">Generate link</button>
         </div>
-        <div class="error-msg" id="errorMsg">⚠ That code doesn't match any asset. Double-check the listing.</div>
-
-        <div class="code-hint">
-          Don't have a code? <button onclick="toggleHint()">How to get one →</button>
-        </div>
-        <div class="hint-panel" id="hintPanel">
+        <div class="err-msg" id="gwErr"></div>
+        <div class="code-hint">No code? <button onclick="gwToggleHint()">How to find one →</button></div>
+        <div class="hint-box" id="gwHint">
           <ol>
-            <li>Visit any of my stock profiles linked above.</li>
+            <li>Visit any of my stock profiles above.</li>
             <li>Open any animation listing.</li>
-            <li><strong>Look in the description</strong> for a line that reads <em>"Free sample code: AL-XXXX"</em>.</li>
-            <li>Copy that code and paste it here.</li>
+            <li><strong>Look in the description</strong> for <em>"Free sample code: AL-XXXX"</em>.</li>
+            <li>Copy and paste it here.</li>
           </ol>
         </div>
-      </div>
 
-      <!-- Success panel -->
-      <div class="success-panel" id="successPanel">
-        <div class="success-header">
-          <div class="success-icon">✓</div>
-          <div>
-            <h4>Your download is ready</h4>
-            <p>Full 4K sample · No watermark · Personal use</p>
+        <div class="success-box" id="gwSuccess">
+          <div class="success-hd">
+            <div class="success-ico">✓</div>
+            <div><h4>Your download is ready</h4><p>Full 4K · No watermark · Personal use</p></div>
+          </div>
+          <button class="btn-dl" onclick="gwDownload()">↓ Download free sample</button>
+          <div class="upsell">
+            <div>🔥</div>
+            <p><strong>Loved it?</strong> The full commercial pack with 20 loops and AE source is on Envato.</p>
+            <a href="https://elements.envato.com" target="_blank">View pack →</a>
           </div>
         </div>
-        <button class="btn-download" onclick="handleDownload()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 3v12"/></svg>
-          Download free sample
-        </button>
-        <div class="upsell-row">
-          <div>🔥</div>
-          <p><strong>Loved it?</strong> The full commercial pack with 20 loops and After Effects source is on Envato.</p>
-          <a href="#">View pack →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="section-eyebrow">Contact</div>
+      <h2 class="section-title">Let's make something <span class="hl">move</span></h2>
+    </div>
+    <div class="contact-grid">
+      <div class="reveal">
+        <div class="contact-info">
+          <h3>Get in touch</h3>
+          <p>Have a custom project in mind? Looking for a specific type of animation? I'd love to hear about it. Typical response within 24 hours.</p>
+        </div>
+        <div class="contact-methods">
+          <div class="c-method">
+            <div class="c-method-icon">✉</div>
+            <div>
+              <div class="c-method-label">Email</div>
+              <div class="c-method-val">hello@motionstudio.com</div>
+            </div>
+          </div>
+          <div class="c-method">
+            <div class="c-method-icon">🕐</div>
+            <div>
+              <div class="c-method-label">Response time</div>
+              <div class="c-method-val">Within 24 hours</div>
+            </div>
+          </div>
+          <div class="c-method">
+            <div class="c-method-icon">📦</div>
+            <div>
+              <div class="c-method-label">Custom project turnaround</div>
+              <div class="c-method-val">5–10 business days</div>
+            </div>
+          </div>
         </div>
       </div>
 
+      <div class="reveal">
+        <div class="contact-form" id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cf-name">Name</label>
+              <input id="cf-name" type="text" placeholder="Your name"/>
+            </div>
+            <div class="form-group">
+              <label for="cf-email">Email</label>
+              <input id="cf-email" type="email" placeholder="you@example.com"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cf-type">Project type</label>
+            <select id="cf-type">
+              <option value="">Select a service…</option>
+              <option>Custom loop pack</option>
+              <option>Background collection</option>
+              <option>Transition pack</option>
+              <option>Full motion package</option>
+              <option>Other / general inquiry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="cf-msg">Message</label>
+            <textarea id="cf-msg" rows="5" placeholder="Tell me about your project…"></textarea>
+          </div>
+          <button class="btn-send" onclick="sendForm()">Send message →</button>
+          <div class="form-success" id="formSuccess">✓ Message sent! I'll get back to you within 24 hours.</div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
+<!-- FOOTER -->
 <footer>
-  Made by <a href="#">your name here</a> · Stock animations on <a href="#">Envato</a>, <a href="#">Shutterstock</a>, <a href="#">Adobe Stock</a>, <a href="#">Vecteezy</a><br/>
-  Free samples for personal / preview use only. Commercial use requires a platform license.
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="logo" href="#home">Motion<em style="font-style:normal;color:var(--lime)">Studio</em></a>
+        <p>Seamless loop animations for stock platforms and custom productions.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="#portfolio">Portfolio</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#downloads">Free downloads</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Stock platforms</h4>
+        <ul>
+          <li><a href="https://elements.envato.com" target="_blank">Envato Elements</a></li>
+          <li><a href="https://www.shutterstock.com" target="_blank">Shutterstock</a></li>
+          <li><a href="https://stock.adobe.com" target="_blank">Adobe Stock</a></li>
+          <li><a href="https://www.vecteezy.com" target="_blank">Vecteezy</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem">Buy my work</h4>
+        <div class="footer-platforms">
+          <a class="fp-btn fp-env" href="https://elements.envato.com" target="_blank">Envato</a>
+          <a class="fp-btn fp-ss" href="https://www.shutterstock.com" target="_blank">Shutterstock</a>
+          <a class="fp-btn fp-adobe" href="https://stock.adobe.com" target="_blank">Adobe</a>
+          <a class="fp-btn fp-vec" href="https://www.vecteezy.com" target="_blank">Vecteezy</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 MotionStudio. All rights reserved.</p>
+      <p>Free samples for personal/preview use · <a href="#contact">Commercial licensing</a> available</p>
+    </div>
+  </div>
 </footer>
 
 <script>
-  const VALID_CODES = ['AL-0042', 'AL-0043', 'AL-0101', 'DEMO', 'SAMPLE', 'TEST123'];
+// ── PORTFOLIO DATA ──
+var ANIMATIONS = [
+  {id:1,title:'Geometric Wave Loop',desc:'Hypnotic angular wave that morphs endlessly. Perfect for tech and corporate backgrounds.',emoji:'🌊',cat:'geo loop',tags:['loop','4k'],platforms:['env','adobe'],featured:true},
+  {id:2,title:'Particle Burst – Vol. 1',desc:'Organic particle explosion with alpha channel, ideal for title cards and overlays.',emoji:'✨',cat:'particles loop',tags:['loop','new'],platforms:['env','ss'],featured:false},
+  {id:3,title:'Neon Grid Background',desc:'Retro-futuristic neon grid perspective loop. Great for gaming and tech content.',emoji:'🟣',cat:'bg loop',tags:['bg','4k'],platforms:['ss','vec'],featured:false},
+  {id:4,title:'Liquid Metal Transition',desc:'Smooth liquid mercury wipe transition with full alpha. Frame-perfect at 60fps.',emoji:'⚡',cat:'trans',tags:['trans','new'],platforms:['adobe','env'],featured:false},
+  {id:5,title:'Abstract Sphere Loop',desc:'Slowly rotating iridescent sphere — minimal and meditative. Looks great in 8K.',emoji:'🔮',cat:'geo loop',tags:['loop','4k'],platforms:['env','ss','adobe'],featured:true},
+  {id:6,title:'Fire Particles Overlay',desc:'Realistic upward fire particle system with alpha. Works over any footage.',emoji:'🔥',cat:'particles loop',tags:['loop','new'],platforms:['ss','vec'],featured:false},
+  {id:7,title:'Clean Gradient Loop',desc:'Slow, smooth gradient color shift — the understated background that never distracts.',emoji:'🌈',cat:'bg loop',tags:['bg','4k'],platforms:['adobe','vec'],featured:false},
+  {id:8,title:'Glitch Wipe Transition',desc:'Distorted glitch-style transition with scanlines. Pairs with music and gaming content.',emoji:'📺',cat:'trans',tags:['trans'],platforms:['env','ss'],featured:false},
+  {id:9,title:'DNA Helix Loop',desc:'Scientific DNA double helix rotation — ideal for medical and biotech visuals.',emoji:'🧬',cat:'geo loop',tags:['loop','4k'],platforms:['env','adobe'],featured:false},
+];
 
-  function handleGenerate() {
-    const val = document.getElementById('codeField').value.trim().toUpperCase();
-    const input = document.getElementById('codeField');
-    const err = document.getElementById('errorMsg');
-    const success = document.getElementById('successPanel');
-    const btn = document.getElementById('btnGenerate');
+var TAG_MAP = {'loop':'tag-loop','4k':'tag-4k','new':'tag-new','bg':'tag-bg','trans':'tag-trans','ae':'tag-ae'};
+var PLAT_MAP = {
+  'env':'<a class="port-link pl-envato" href="https://elements.envato.com" target="_blank">Envato</a>',
+  'ss':'<a class="port-link pl-ss" href="https://www.shutterstock.com" target="_blank">SS</a>',
+  'adobe':'<a class="port-link pl-adobe" href="https://stock.adobe.com" target="_blank">Adobe</a>',
+  'vec':'<a class="port-link pl-vec" href="https://www.vecteezy.com" target="_blank">Vecteezy</a>'
+};
 
-    err.style.display = 'none';
-    success.style.display = 'none';
-    input.classList.remove('error', 'success-input');
+function buildCard(a){
+  var tagsHtml = a.tags.map(function(t){return '<span class="port-tag '+TAG_MAP[t]+'">'+t.toUpperCase()+'</span>'}).join('');
+  var platsHtml = a.platforms.map(function(p){return PLAT_MAP[p]}).join('');
+  return '<div class="port-card reveal" data-cat="'+a.cat+'">'+
+    '<div class="port-card-inner">'+
+      '<div class="port-thumb">'+
+        '<div class="port-thumb-visual">'+a.emoji+'</div>'+
+        '<div class="port-play-overlay"><div class="play-btn">▶</div></div>'+
+        '<div class="port-tags">'+tagsHtml+'</div>'+
+      '</div>'+
+      '<div class="port-info">'+
+        '<h4>'+a.title+'</h4>'+
+        '<p class="port-desc">'+a.desc+'</p>'+
+        '<div class="port-meta">'+
+          '<span class="port-platform">Available on</span>'+
+          '<div class="port-links">'+platsHtml+'</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
 
-    if (!val) {
-      input.classList.add('error');
-      err.textContent = '⚠ Enter a code from any stock listing first.';
+function renderGrid(filter){
+  var grid = document.getElementById('portfolioGrid');
+  var filtered = filter === 'all' ? ANIMATIONS : ANIMATIONS.filter(function(a){return a.cat.indexOf(filter) !== -1});
+  grid.innerHTML = filtered.map(buildCard).join('');
+  observeReveal();
+}
+
+function filterCards(btn, cat){
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  renderGrid(cat);
+}
+
+// ── GATEWAY ──
+var GW_CODES = ['AL-0042','AL-0043','AL-0101','DEMO','SAMPLE','TEST123'];
+
+function gwGenerate(){
+  var val = document.getElementById('gwCode').value.trim().toUpperCase();
+  var input = document.getElementById('gwCode');
+  var err = document.getElementById('gwErr');
+  var success = document.getElementById('gwSuccess');
+  var btn = document.getElementById('gwBtn');
+
+  err.style.display = 'none';
+  success.style.display = 'none';
+  input.classList.remove('err','ok');
+
+  if(!val){input.classList.add('err');err.textContent='⚠ Enter a code from any stock listing first.';err.style.display='block';return}
+
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+
+  setTimeout(function(){
+    if(GW_CODES.indexOf(val) !== -1){
+      input.classList.add('ok');
+      success.style.display = 'flex';
+      var s2 = document.getElementById('gstep2');
+      s2.classList.remove('active'); s2.classList.add('done');
+      s2.querySelector('.gw-num').textContent = '✓';
+      document.getElementById('gstep3').classList.add('active');
+      btn.textContent = 'Generated ✓';
+      btn.style.background = '#C8F135';
+      btn.style.color = '#0E0E12';
+    } else {
+      input.classList.add('err');
+      err.textContent = '⚠ Code not found. Double-check the stock listing description.';
       err.style.display = 'block';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Checking…';
-
-    setTimeout(() => {
-      if (VALID_CODES.includes(val)) {
-        input.classList.add('success-input');
-        success.style.display = 'flex';
-        document.getElementById('step2').classList.remove('active');
-        document.getElementById('step2').classList.add('done');
-        document.getElementById('step2').querySelector('.step-num').textContent = '✓';
-        document.getElementById('step3').classList.add('active');
-        btn.textContent = 'Generated ✓';
-        btn.style.background = 'var(--lime)';
-        btn.style.color = 'var(--dark)';
-      } else {
-        input.classList.add('error');
-        err.textContent = '⚠ That code doesn\'t match any asset. Double-check the listing.';
-        err.style.display = 'block';
-        btn.textContent = 'Generate link';
-        btn.disabled = false;
-      }
+      btn.textContent = 'Generate link';
       btn.disabled = false;
-    }, 900);
+    }
+    btn.disabled = false;
+  }, 900);
+}
+
+function gwDownload(){
+  var btn = document.querySelector('.btn-dl');
+  btn.textContent = 'Starting download…';
+  // Replace this URL with your real Google Drive / Dropbox link
+  window.location.href = 'https://drive.google.com/uc?export=download&id=YOUR_FILE_ID';
+  setTimeout(function(){btn.textContent = '✓ Done! Check your downloads folder.'},1500);
+}
+
+function gwToggleHint(){
+  var h = document.getElementById('gwHint');
+  h.style.display = h.style.display === 'block' ? 'none' : 'block';
+}
+
+document.getElementById('gwCode').addEventListener('keydown',function(e){if(e.key==='Enter')gwGenerate()});
+
+// ── CONTACT FORM ──
+// 1. Deploy Code.gs as a Google Apps Script Web App (see setup instructions).
+// 2. Paste the resulting /exec URL below.
+var CONTACT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxl6F3-YiP41WR-Vy5pofDEfppLxDdm5zhdYP06TQCpK2eJA7t_TrIvzJLR897eF6ubDg/exec';
+
+function sendForm(){
+  var name = document.getElementById('cf-name').value.trim();
+  var email = document.getElementById('cf-email').value.trim();
+  var msg = document.getElementById('cf-msg').value.trim();
+  if(!name || !email || !msg){alert('Please fill in your name, email, and message.');return}
+
+  if(CONTACT_ENDPOINT.indexOf('PASTE_YOUR') === 0){
+    alert('Contact form isn\'t connected yet — see the setup steps to deploy the Apps Script relay.');
+    return;
   }
 
-  function handleDownload() {
-    const btn = document.querySelector('.btn-download');
-    btn.textContent = 'Starting download…';
-    setTimeout(() => { btn.textContent = '✓ Downloaded! Enjoy your animation.'; }, 1200);
-  }
+  var btn = document.querySelector('.btn-send');
+  var originalLabel = btn.textContent;
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
 
-  function toggleHint() {
-    const panel = document.getElementById('hintPanel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-  }
-
-  document.getElementById('codeField').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') handleGenerate();
+  fetch(CONTACT_ENDPOINT, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'}, // avoids CORS preflight
+    body: JSON.stringify({name: name, email: email, message: msg})
+  })
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(data.ok){
+      document.getElementById('formSuccess').style.display = 'block';
+      btn.style.display = 'none';
+    } else {
+      btn.textContent = originalLabel;
+      btn.disabled = false;
+      alert('Message could not be sent: ' + (data.error || 'unknown error') + '. Please try again.');
+    }
+  })
+  .catch(function(){
+    btn.textContent = originalLabel;
+    btn.disabled = false;
+    alert('Message could not be sent. Please check your connection and try again.');
   });
+}
+
+// ── MOBILE NAV ──
+document.getElementById('mobileBtn').addEventListener('click',function(){
+  var m = document.getElementById('navMenu');
+  m.classList.toggle('open');
+  this.textContent = m.classList.contains('open') ? '✕' : '☰';
+});
+document.querySelectorAll('.nav-menu a').forEach(function(a){
+  a.addEventListener('click',function(){
+    document.getElementById('navMenu').classList.remove('open');
+    document.getElementById('mobileBtn').textContent='☰';
+  });
+});
+
+// ── SCROLL REVEAL ──
+function observeReveal(){
+  var els = document.querySelectorAll('.reveal:not(.visible)');
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}});
+    },{threshold:.12});
+    els.forEach(function(el){io.observe(el)});
+  } else {
+    els.forEach(function(el){el.classList.add('visible')});
+  }
+}
+
+// ── INIT ──
+renderGrid('all');
+observeReveal();
 </script>
 </body>
 </html>
